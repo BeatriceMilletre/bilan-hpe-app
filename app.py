@@ -17,23 +17,12 @@ if not YAML_PATH.exists():
 with YAML_PATH.open("r", encoding="utf-8") as f:
     data = yaml.safe_load(f)
 
-thresholds = data.get("thresholds", {})  # voir section thresholds dans questionnaire.yml
+thresholds = data.get("thresholds", {})
 
-st.title("🧠 Bilan HPE – Passation (YAML)")
-st.caption("Les items et barèmes viennent de `questionnaire.yml` (modifiez-le pour faire évoluer le test).")
-
-with st.sidebar:
-    st.header("Infos répondant")
-    name = st.text_input("Nom (optionnel)")
-    age = st.text_input("Âge (optionnel)")
-    st.markdown("---")
-    st.write("✏️ Pour changer les questions/barèmes/seuils : éditez `questionnaire.yml`.")
-
-# ---------- Outils ----------
+# ---------- Fonctions ----------
 DEFAULT_LIKERT4 = ["Tout à fait d’accord","Plutôt d’accord","Plutôt pas d’accord","Pas du tout d’accord"]
 
 def categorize(value, thres: dict):
-    """Renvoie 'faible' / 'moyen' / 'élevé' selon les seuils du YAML."""
     if value is None:
         return "—"
     if value >= thres.get("high", 9e9):
@@ -62,84 +51,7 @@ def synthese_re(hr, er, he, ee, thres_re: dict):
                 parts.append(f"{lab} **faible** → intuition moins mobilisée.")
     return "\n".join(f"- {p}" for p in parts)
 
-# ---------- UI blocs ----------
-def ask_block_4pt(block: dict):
-    labels = block.get("scale_labels", DEFAULT_LIKERT4)
-    out = {}
-    st.subheader(block.get("key", "Échelle"))
-    for it in block.get("items", []):
-        c1, c2 = st.columns([3, 2])
-        with c1:
-            st.write(f"**{it['id']}** — {it.get('text','')}")
-        with c2:
-            choice = st.radio(
-                it["id"], options=list(range(4)), index=0, horizontal=True,
-                label_visibility="collapsed", format_func=lambda i: labels[i]
-            )
-        out[it["id"]] = it["values"][choice]
-        st.divider()
-    return out
-
-def ask_block_re(block: dict):
-    st.subheader("Échelle Rationnelle / Expérientielle (1–5)")
-    st.caption("Reverse appliqué si `reverse: true` dans questionnaire.yml (1↔5).")
-    scores, bad = {}, []
-    for idx, it in enumerate(block.get("items", []), start=1):
-        if not isinstance(it, dict):
-            bad.append((idx, f"type={type(it).__name__} -> {it!r}"))
-            continue
-        iid = it.get("id"); tag = it.get("tag"); text = it.get("text", "")
-        if not iid or not tag:
-            bad.append((idx, f"id={iid!r}, tag={tag!r}, text={text[:40]!r}"))
-            continue
-        val = st.slider(f"{iid} – {tag} : {text}", 1, 5, 3, key=f"rei-{iid}")
-        if it.get("reverse", False):
-            val = 6 - val
-        scores[str(iid)] = {"tag": str(tag).upper(), "score": float(val)}
-    if bad:
-        st.warning(f"Certains items RE-40 ont été ignorés (id/tag manquants) : {len(bad)}. "
-                   f"Exemple de problème : {bad[0]}")
-    return scores
-
-# ---------- Passation ----------
-short_totals = {}
-re_scores = {}
-for block in data.get("blocks", []):
-    if block.get("type") == "re":
-        re_scores = ask_block_re(block)
-    else:
-        answers = ask_block_4pt(block)
-        short_totals[block["key"]] = sum(answers.values())
-
-# ---------- Scores R/E ----------
-def mean_tag(tag: str):
-    vals = [v["score"] for v in re_scores.values() if v["tag"] == tag]
-    return round(float(np.mean(vals)), 2) if vals else None
-
-HR = mean_tag("HR"); ER = mean_tag("ER"); HE = mean_tag("HE"); EE = mean_tag("EE")
-
-# ---------- Résultats ----------
-st.header("Résultats")
-c1, c2 = st.columns(2)
-
-with c1:
-    st.subheader("Questionnaires courts")
-    rows = []
-    for k, v in short_totals.items():
-        cat = categorize(v, thresholds.get("short_scales", {}).get(k, {}))
-        rows.append({"Échelle": k, "Total": v, "Catégorie": cat})
-    st.dataframe(pd.DataFrame(rows), use_container_width=True)
-
-with c2:
-    st.subheader("Rationnel / Expérientiel (1–5)")
-    rows = []
-    for lab, val in [("HR", HR), ("ER", ER), ("HE", HE), ("EE", EE)]:
-        cat = categorize(val, thresholds.get("re_scales", {}).get(lab, {}))
-        rows.append({"Sous-échelle": lab, "Score": val, "Catégorie": cat})
-    st.dataframe(pd.DataFrame(rows), use_container_width=True)
-
-# ---------- Rapport & Exports ----------
-def build_report():
+def build_report(short_totals, re_scores, HR, ER, HE, EE, name, age):
     L = []
     L.append("# Bilan HPE – Rapport (YAML)")
     L.append(f"**Date** : {datetime.now().strftime('%Y-%m-%d %H:%M')}")
@@ -166,18 +78,107 @@ def build_report():
     L.append("> Note : seuils configurables dans `questionnaire.yml` → `thresholds`.")
     return "\n".join(L)
 
-report = build_report()
-st.download_button("💾 Télécharger le rapport (.md)", report,
-                   file_name="bilan_hpe_rapport.md", mime="text/markdown")
+# ---------- Mode sélection ----------
+mode = st.radio("Choisir le mode :", ["Passer le test", "Téléverser un fichier existant"])
 
-raw = {}
-for k, v in short_totals.items():
-    raw[k] = v
-for k, v in re_scores.items():
-    raw[k] = v["score"]
-raw.update({"HR": HR, "ER": ER, "HE": HE, "EE": EE})
-st.download_button("⬇️ Exporter les réponses (.csv)",
-                   pd.DataFrame([raw]).to_csv(index=False).encode("utf-8"),
-                   file_name="bilan_hpe_reponses.csv", mime="text/csv")
+if mode == "Passer le test":
+    st.title("🧠 Passation du Bilan HPE")
 
-st.success("OK. Classement faible/moyen/élevé ajouté + synthèse automatique dans le rapport.")
+    with st.sidebar:
+        st.header("Infos répondant")
+        name = st.text_input("Nom (optionnel)")
+        age = st.text_input("Âge (optionnel)")
+
+    # ---- Passation des blocs ----
+    def ask_block_4pt(block: dict):
+        labels = block.get("scale_labels", DEFAULT_LIKERT4)
+        out = {}
+        st.subheader(block.get("key", "Échelle"))
+        for it in block.get("items", []):
+            c1, c2 = st.columns([3, 2])
+            with c1:
+                st.write(f"**{it['id']}** — {it.get('text','')}")
+            with c2:
+                choice = st.radio(
+                    it["id"], options=list(range(4)), index=0, horizontal=True,
+                    label_visibility="collapsed", format_func=lambda i: labels[i]
+                )
+            out[it["id"]] = it["values"][choice]
+            st.divider()
+        return out
+
+    def ask_block_re(block: dict):
+        st.subheader("Échelle Rationnelle / Expérientielle (1–5)")
+        scores = {}
+        for it in block.get("items", []):
+            iid, tag, text = it.get("id"), it.get("tag"), it.get("text","")
+            val = st.slider(f"{iid} – {tag} : {text}", 1, 5, 3, key=f"rei-{iid}")
+            if it.get("reverse", False):
+                val = 6 - val
+            scores[str(iid)] = {"tag": str(tag).upper(), "score": float(val)}
+        return scores
+
+    short_totals = {}
+    re_scores = {}
+    for block in data.get("blocks", []):
+        if block.get("type") == "re":
+            re_scores = ask_block_re(block)
+        else:
+            answers = ask_block_4pt(block)
+            short_totals[block["key"]] = sum(answers.values())
+
+    def mean_tag(tag: str):
+        vals = [v["score"] for v in re_scores.values() if v["tag"] == tag]
+        return round(float(np.mean(vals)), 2) if vals else None
+
+    HR = mean_tag("HR"); ER = mean_tag("ER"); HE = mean_tag("HE"); EE = mean_tag("EE")
+
+    # ---- Résultats ----
+    st.header("Résultats")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.subheader("Questionnaires courts")
+        rows = []
+        for k, v in short_totals.items():
+            cat = categorize(v, thresholds.get("short_scales", {}).get(k, {}))
+            rows.append({"Échelle": k, "Total": v, "Catégorie": cat})
+        st.dataframe(pd.DataFrame(rows), use_container_width=True)
+
+    with c2:
+        st.subheader("Rationnel / Expérientiel (1–5)")
+        rows = []
+        for lab, val in [("HR", HR), ("ER", ER), ("HE", HE), ("EE", EE)]:
+            cat = categorize(val, thresholds.get("re_scales", {}).get(lab, {}))
+            rows.append({"Sous-échelle": lab, "Score": val, "Catégorie": cat})
+        st.dataframe(pd.DataFrame(rows), use_container_width=True)
+
+    # ---- Exports ----
+    report = build_report(short_totals, re_scores, HR, ER, HE, EE, name, age)
+    st.download_button("💾 Télécharger le rapport (.md)", report,
+                       file_name="bilan_hpe_rapport.md", mime="text/markdown")
+
+    raw = {}
+    for k, v in short_totals.items():
+        raw[k] = v
+    for k, v in re_scores.items():
+        raw[k] = v["score"]
+    raw.update({"HR": HR, "ER": ER, "HE": HE, "EE": EE})
+    st.download_button("⬇️ Exporter les réponses (.csv)",
+                       pd.DataFrame([raw]).to_csv(index=False).encode("utf-8"),
+                       file_name="bilan_hpe_reponses.csv", mime="text/csv")
+
+elif mode == "Téléverser un fichier existant":
+    st.title("📂 Importer un rapport ou des réponses")
+
+    uploaded = st.file_uploader("Déposez un fichier .csv (réponses brutes) ou .md (rapport)")
+    if uploaded:
+        if uploaded.name.endswith(".csv"):
+            df = pd.read_csv(uploaded)
+            st.subheader("Réponses importées")
+            st.dataframe(df, use_container_width=True)
+        elif uploaded.name.endswith(".md"):
+            content = uploaded.read().decode("utf-8")
+            st.subheader("Rapport importé")
+            st.markdown(content)
+        else:
+            st.error("Format non reconnu. Utilisez .csv ou .md")
