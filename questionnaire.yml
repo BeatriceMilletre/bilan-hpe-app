@@ -61,6 +61,123 @@ blocks:
       - {id: "QA9",  text: "Je remarque rapidement quand quelque chose n’est pas à sa place.", values: [1,1,0,0]}
       - {id: "QA10", text: "Je peux rester concentré longtemps même dans un environnement bruyant.", values: [0,0,1,1]}
 
+  - key: "BMRI-28"
+    type: "forced_choice"
+    items:
+      - id: BMRI1
+        stem: "Quand je dois préparer un projet important…"
+        a: "Je passe en revue et j’élabore méthodiquement mon plan."
+        b: "Je range ou je fais autre chose et je laisse mes idées mûrir."
+      - id: BMRI2
+        stem: "Quand quelqu’un raconte une blague…"
+        a: "Je demande qu’on me l’explique si je ne comprends pas."
+        b: "Je ris spontanément même si je ne l’ai pas totalement comprise."
+      - id: BMRI3
+        stem: "Quand j’expose une idée…"
+        a: "Je déroule mes arguments et mon raisonnement."
+        b: "Je sais intuitivement mais je ne peux pas toujours expliquer comment."
+      - id: BMRI4
+        stem: "Quand je dois aller voir un collègue pour régler un point…"
+        a: "Je prends mes documents et j’y vais directement."
+        b: "Je m’arrête un instant, je laisse venir la solution, puis je sais quoi faire."
+      - id: BMRI5
+        stem: "Quand j’ai un enseignant désagréable…"
+        a: "Je reste au même niveau et je fais avec."
+        b: "Mes résultats en pâtissent car je me sens personnellement visé."
+      - id: BMRI6
+        stem: "Pour ma carrière…"
+        a: "Je visualise les étapes et je programme ma progression."
+        b: "Je vois le résultat très précisément, sans comprendre pourquoi je ne progresse pas si vite."
+      - id: BMRI7
+        stem: "Quand je propose une idée en réunion…"
+        a: "J’argumente ses avantages pour la faire adopter."
+        b: "Je lance l’idée sans insister, quitte à ce qu’elle soit reprise par d’autres plus tard."
+      - id: BMRI8
+        stem: "Dans ma vie quotidienne…"
+        a: "Je prends mes moments de pause sans rien penser de particulier."
+        b: "Je fais plusieurs choses à la fois et je démarre des actions en parallèle."
+      - id: BMRI9
+        stem: "Quand un proche suit un traitement médical…"
+        a: "Je préfère attendre que le traitement fasse effet."
+        b: "Je sens rapidement si le traitement est insuffisant."
+      - id: BMRI10
+        stem: "Dans mes conversations…"
+        a: "Je parle de sujets divers et quotidiens."
+        b: "J’aime discuter de thèmes pointus ou spécialisés, même si ça surprend."
+      - id: BMRI11
+        stem: "Quand je dois préparer un cours ou une présentation…"
+        a: "Je prépare très en amont avec un plan complet et détaillé."
+        b: "Je m’y mets au dernier moment avec un plan succinct et les idées principales."
+      - id: BMRI12
+        stem: "Quand je dois prendre la parole devant un comité…"
+        a: "Je prépare mon discours à l’avance et je le rédige."
+        b: "Je parle avec un pense-bête et je construis mon discours en parlant."
+      - id: BMRI13
+        stem: "Lors d’un examen…"
+        a: "Je restitue la synthèse du cours et je réussis ainsi."
+        b: "J’exprime ma pensée personnelle même si elle peut être jugée hors sujet."
+      - id: BMRI14
+        stem: "Pour un devoir d’histoire…"
+        a: "Je fais un plan détaillé et je recopie après un brouillon complet."
+        b: "Je papillonne entre les supports puis je rédige d’un seul jet."
+      - id: BMRI15
+        stem: "Dans mon travail quotidien…"
+        a: "Je vois de la nouveauté et je progresse en continu."
+        b: "Je m’ennuie vite et j’ai envie de changer quand la routine s’installe."
+      - id: BMRI16
+        stem: "Quand j’apprends une nouvelle activité (ex. équitation)…"
+        a: "Je progresse étape par étape grâce aux leçons."
+        b: "J’ai un bon coup d’œil sans toujours savoir expliquer comment je fais."
+      - id: BMRI17
+        stem: "Quand j’ai une lettre épineuse à rédiger…"
+        a: "Je rédige, relis et corrige jusqu’à satisfaction."
+        b: "Je fais autre chose et soudain la solution me vient."
+      - id: BMRI18
+        stem: "Pour accepter un nouveau poste…"
+        a: "Je pèse le pour et le contre de manière méthodique."
+        b: "Je décide vite et j’ajuste en cours de route si besoin."
+      - id: BMRI19
+        stem: "Quand je retrouve des amis…"
+        a: "Je profite du moment et j’écoute tranquillement."
+        b: "Je donne spontanément beaucoup de conseils d’amélioration."
+      - id: BMRI20
+        stem: "Quand je rends un travail créatif…"
+        a: "Je vise la perfection et j’ai du mal à m’arrêter."
+        b: "Je rends quand c’est satisfaisant, en me disant que je pourrai améliorer plus tard."
+      - id: BMRI21
+        stem: "En conversation…"
+        a: "Je réfléchis, j’écoute et je rebondis sur ce que dit l’autre."
+        b: "Je termine souvent les phrases de mon interlocuteur."
+      - id: BMRI22
+        stem: "Quand je dois me concentrer sur un programme…"
+        a: "Je peux travailler longtemps, avec de petites pauses."
+        b: "Je m’interromps facilement et j’ai du mal à rester concentré."
+      - id: BMRI23
+        stem: "Quand je dois restructurer une équipe…"
+        a: "J’analyse dossiers et compétences avant de décider."
+        b: "Je conçois rapidement une nouvelle organisation."
+      - id: BMRI24
+        stem: "Dans mes relations sociales…"
+        a: "Je me sens intégré et je comprends facilement les autres."
+        b: "Je me sens souvent à côté et incompris."
+      - id: BMRI25
+        stem: "Face à un exercice de géométrie…"
+        a: "Je trouve la solution par raisonnement appris et démonstration."
+        b: "Je trouve la réponse parce que ça me paraît évident, sans justifier."
+      - id: BMRI26
+        stem: "Dans mon travail…"
+        a: "Je sépare mes valeurs personnelles de mon rôle professionnel."
+        b: "Je refuse de transiger et j’exprime mes valeurs en toutes circonstances."
+      - id: BMRI27
+        stem: "Quand je lis un livre d’histoire…"
+        a: "Je lis d’un trait et je reste concentré."
+        b: "Je m’interromps souvent, partant vers d’autres idées ou lectures."
+      - id: BMRI28
+        stem: "Pour choisir mon vote…"
+        a: "Je décide facilement en fonction de mes opinions."
+        b: "J’hésite longtemps si je n’ai pas toutes les informations."
+
+
   # ---------- RE-40 ----------
   - key: "RE-40"
     type: "re"
