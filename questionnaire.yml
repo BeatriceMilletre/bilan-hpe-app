@@ -1,141 +1,66 @@
-# -*- coding: utf-8 -*-
-import streamlit as st
-import pandas as pd
-import numpy as np
-import yaml
-from datetime import datetime
-from pathlib import Path
+title: "Bilan HPE – Banque d’items (depuis DOCX)"
 
-st.set_page_config(page_title="Bilan HPE (YAML)", page_icon="🧠", layout="centered")
+blocks:
+  # ---------- SPQ-10 ----------
+  # Source : DOCX – section "SPQ 10". :contentReference[oaicite:4]{index=4}
+  - key: "SPQ-10"
+    scale_labels: ["Tout à fait d’accord","Plutôt d’accord","Plutôt pas d’accord","Pas du tout d’accord"]
+    items:
+      - {id: "SPQ1",  text: "Je suis capable de différencier deux personnes par leur odeur.", values: [3,2,1,0]}
+      - {id: "SPQ2",  text: "Je peux percevoir une différence entre deux marques de chips simplement en les goûtant.", values: [3,2,1,0]}
+      - {id: "SPQ3",  text: "Je peux entendre le grésillement de l’électricité dans les murs.", values: [3,2,1,0]}
+      - {id: "SPQ4",  text: "Je suis capable de percevoir un très faible changement de la température extérieure (1 degré par exemple).", values: [3,2,1,0]}
+      - {id: "SPQ5",  text: "Je peux, en les goûtant, sentir la différence entre deux bonbons apparemment identiques.", values: [3,2,1,0]}
+      - {id: "SPQ6",  text: "Je peux percevoir une différence de poids entre deux pièces posées dans ma main, sans les regarder (les yeux fermés).", values: [3,2,1,0]}
+      - {id: "SPQ7",  text: "Je serai capable de sentir la plus petite fuite de gaz depuis n’importe où dans la maison.", values: [3,2,1,0]}
+      - {id: "SPQ8",  text: "Je serais le premier à entendre s’il y avait une mouche dans la pièce.", values: [3,2,1,0]}
+      - {id: "SPQ9",  text: "Si je regarde une pile de pulls bleus dans une boutique, et qu’ils sont censés être identiques, je percevrai quand même leurs différences.", values: [3,2,1,0]}
+      - {id: "SPQ10", text: "Je peux voir les particules de poussière voler dans l’air dans la plupart des environnements.", values: [3,2,1,0]}
 
-# ---------- Charger le YAML ----------
-YAML_PATH = Path("questionnaire.yml")
-if not YAML_PATH.exists():
-    st.error("Le fichier 'questionnaire.yml' est introuvable à la racine du dépôt.")
-    st.stop()
+  # ---------- EQ-10 ----------
+  # Source : DOCX – section "EQ 10". 
+  - key: "EQ-10"
+    scale_labels: ["Tout à fait d’accord","Plutôt d’accord","Plutôt pas d’accord","Pas du tout d’accord"]
+    items:
+      - {id: "EQ1",  text: "Je suis doué pour prédire comment quelqu’un se sentira.", values: [2,1,0,0]}
+      - {id: "EQ2",  text: "On me dit que je suis doué pour comprendre ce que ressentent et pensent les autres.", values: [2,1,0,0]}
+      - {id: "EQ3",  text: "Il m’est difficile de savoir pourquoi certaines choses contrarient les autres.", values: [0,0,1,2]}
+      - {id: "EQ4",  text: "Je peux facilement savoir ce dont une personne veut parler.", values: [2,1,0,0]}
+      - {id: "EQ5",  text: "Je ne comprends pas toujours pourquoi quelqu’un se sent blessé par ce que j’ai dit.", values: [0,0,1,2]}
+      - {id: "EQ6",  text: "Je peux voir rapidement et intuitivement comment une personne se sent.", values: [2,1,0,0]}
+      - {id: "EQ7",  text: "On me dit souvent que je suis insensible et je ne comprends pas toujours pourquoi.", values: [0,0,1,2]}
+      - {id: "EQ8",  text: "Dans une conversation, je prête plus attention à mes pensées qu’à celles de mon interlocuteur.", values: [0,0,1,2]}
+      - {id: "EQ9",  text: "Mes amis me parlent souvent de leurs problèmes car ils me trouvent très compréhensif.", values: [2,1,0,0]}
+      - {id: "EQ10", text: "Il m’est difficile de savoir comment me comporter en société.", values: [0,0,1,2]}
 
-with open(YAML_PATH, "r", encoding="utf-8") as f:
-    data = yaml.safe_load(f)
+  # ---------- Q-R-10 ----------
+  # Source : DOCX – section "Q-R-10". (libellés 1→10) 
+  - key: "Q-R-10"
+    scale_labels: ["Tout à fait d’accord","Plutôt d’accord","Plutôt pas d’accord","Pas du tout d’accord"]
+    items:
+      - {id: "QR1",  text: "Quand j’apprends au sujet d’une nouvelle catégorie, j’aime aller dans les détails pour comprendre les petites différences entre les membres de cette catégorie.", values: [2,1,0,0]}
+      - {id: "QR2",  text: "Quand je suis dans un avion, je ne pense pas à l’aérodynamique.", values: [0,0,1,2]}
+      - {id: "QR3",  text: "Je suis intéressé par la connaissance du chemin qu’une rivière prend de sa source à la mer.", values: [2,1,0,0]}
+      - {id: "QR4",  text: "Quand je voyage en train, je me demande souvent exactement comment sont combinés les réseaux de rails.", values: [2,1,0,0]}
+      - {id: "QR5",  text: "Quand j’entends les prévisions météorologiques, je ne suis pas très intéressé par les modèles météorologiques.", values: [0,0,1,2]}
+      - {id: "QR6",  text: "J’aime regarder dans les catalogues de produits pour voir les détails de chaque produit et comment il est comparé aux autres.", values: [2,1,0,0]}
+      - {id: "QR7",  text: "Quand je regarde une montagne, je pense précisément à comment elle s’est formée.", values: [2,1,0,0]}
+      - {id: "QR8",  text: "Quand je regarde un élément du mobilier, je ne relève pas les détails de la construction.", values: [0,0,1,2]}
+      - {id: "QR9",  text: "Quand j’apprends une langue, je suis intrigué par ses règles grammaticales.", values: [2,1,0,0]}
+      - {id: "QR10", text: "Quand j’écoute un morceau de musique, je relève toujours la façon dont il est structuré.", values: [2,1,0,0]}
 
-st.title("🧠 Bilan HPE – Passation (YAML)")
-st.caption("Les items et barèmes proviennent du fichier questionnaire.yml (modifiez-le pour faire évoluer le test).")
-
-with st.sidebar:
-    st.header("Infos répondant")
-    name = st.text_input("Nom (optionnel)")
-    age = st.text_input("Âge (optionnel)")
-    st.markdown("---")
-    st.write("✏️ Pour changer les questions, éditez `questionnaire.yml` dans GitHub.")
-
-# ---------- Fonctions UI ----------
-DEFAULT_LIKERT4 = ["Tout à fait d’accord","Plutôt d’accord","Plutôt pas d’accord","Pas du tout d’accord"]
-
-def ask_block_4pt(block):
-    labels = block.get("scale_labels", DEFAULT_LIKERT4)
-    out = {}
-    st.subheader(block["key"])
-    for it in block["items"]:
-        c1, c2 = st.columns([3,2])
-        with c1:
-            st.write(f"**{it['id']}** — {it['text']}")
-        with c2:
-            choice = st.radio(it["id"], options=list(range(4)), index=0,
-                              horizontal=True, label_visibility="collapsed",
-                              format_func=lambda i: labels[i])
-        out[it["id"]] = it["values"][choice]
-        st.divider()
-    return out
-
-def ask_block_re(block):
-    st.subheader("Échelle Rationnelle / Expérientielle (1–5)")
-    st.caption("Reverse appliqué quand indiqué dans questionnaire.yml (1↔5).")
-    scores = {}
-    for it in block["items"]:
-        val = st.slider(f"{it['id']} – {it['tag']} : {it['text']}", 1, 5, 3)
-        if it.get("reverse", False):
-            val = 6 - val
-        scores[it["id"]] = {"tag": it["tag"], "score": float(val)}
-    return scores
-
-# ---------- Passation ----------
-short_totals = {}
-re_scores = {}
-for block in data.get("blocks", []):
-    if block.get("type") == "re":
-        re_scores = ask_block_re(block)
-    else:
-        answers = ask_block_4pt(block)
-        short_totals[block["key"]] = sum(answers.values())
-
-# ---------- Scores R/E ----------
-def mean_tag(tag):
-    vals = [v["score"] for v in re_scores.values() if v["tag"] == tag]
-    return round(float(np.mean(vals)), 2) if vals else None
-
-HR = mean_tag("HR"); ER = mean_tag("ER"); HE = mean_tag("HE"); EE = mean_tag("EE")
-
-def interp_re(label, val):
-    if val is None: return ""
-    if label in ["HR","ER"]:
-        if val >= 4: return f"{label} élevé : aisance pour le raisonnement explicite et structuré."
-        if val >= 3: return f"{label} modéré : ressources rationnelles présentes."
-        return f"{label} faible : appui moindre sur l’analytique (à contextualiser)."
-    else:
-        if val >= 4: return f"{label} élevé : place importante de l’intuition/ressenti."
-        if val >= 3: return f"{label} modéré : intuition et logique coexistent."
-        return f"{label} faible : faible recours déclaré à l’intuition."
-
-# ---------- Affichage résultats ----------
-st.header("Résultats")
-c1, c2 = st.columns(2)
-
-with c1:
-    st.subheader("Synthèse questionnaires courts")
-    df_short = pd.DataFrame([{"Échelle": k, "Total": v} for k, v in short_totals.items()])
-    st.dataframe(df_short, use_container_width=True)
-
-with c2:
-    st.subheader("Rationnel / Expérientiel (1–5)")
-    df_re = pd.DataFrame([
-        {"Sous-échelle":"HR", "Score":HR, "Interprétation":interp_re("HR",HR)},
-        {"Sous-échelle":"ER", "Score":ER, "Interprétation":interp_re("ER",ER)},
-        {"Sous-échelle":"HE", "Score":HE, "Interprétation":interp_re("HE",HE)},
-        {"Sous-échelle":"EE", "Score":EE, "Interprétation":interp_re("EE",EE)},
-    ])
-    st.dataframe(df_re, use_container_width=True)
-
-# ---------- Exports ----------
-def build_report():
-    L = []
-    L.append("# Bilan HPE – Rapport (YAML)")
-    L.append(f"**Date** : {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    meta = " – ".join([x for x in [f'Nom: {name}' if name else None, f'Âge: {age}' if age else None] if x])
-    if meta: L.append(meta)
-    L.append("")
-    L.append("## Scores – courts")
-    for k, v in short_totals.items():
-        L.append(f"- {k} : **{v:.0f}**")
-    L.append("")
-    L.append("## Rationnel / Expérientiel (1–5)")
-    for lab, val in [("HR",HR),("ER",ER),("HE",HE),("EE",EE)]:
-        sval = "—" if val is None else f"{val:.2f}"
-        L.append(f"- {lab} : **{sval}** – {interp_re(lab, val)}")
-    return "\n".join(L)
-
-report = build_report()
-st.download_button("💾 Télécharger le rapport (.md)", report, file_name="bilan_hpe_rapport.md", mime="text/markdown")
-
-raw = {}
-for k, v in short_totals.items():
-    raw[k] = v
-for k, v in re_scores.items():
-    raw[k] = v["score"]
-raw.update({"HR":HR,"ER":ER,"HE":HE,"EE":EE})
-st.download_button(
-    "⬇️ Exporter les réponses (.csv)",
-    pd.DataFrame([raw]).to_csv(index=False).encode("utf-8"),
-    file_name="bilan_hpe_reponses.csv",
-    mime="text/csv"
-)
-
-st.success("OK. Les questions proviennent de `questionnaire.yml`. Modifiez ce fichier pour mettre à jour l'app.")
+  # ---------- QA-10 ----------
+  # Source : DOCX – section "QA– 10". (libellés 1→10) 
+  - key: "QA-10"
+    scale_labels: ["Tout à fait d’accord","Plutôt d’accord","Plutôt pas d’accord","Pas du tout d’accord"]
+    items:
+      - {id: "QA1",  text: "Je remarque souvent des bruits discrets que les autres ne remarquent pas.", values: [1,1,0,0]}
+      - {id: "QA2",  text: "Je me concentre habituellement plus sur l’ensemble d’une image que sur les petits détails de celle-ci.", values: [0,0,1,1]}
+      - {id: "QA3",  text: "Je trouve qu’il est facile de faire plus d’une chose à la fois.", values: [0,0,1,1]}
+      - {id: "QA4",  text: "Si je suis interrompu(e), je peux facilement revenir à ce que j’étais en train de faire.", values: [0,0,1,1]}
+      - {id: "QA5",  text: "Je trouve qu’il est facile de « lire entre les lignes » lorsque quelqu’un me parle.", values: [0,0,1,1]}
+      - {id: "QA6",  text: "Je sais m’en rendre compte quand mon interlocuteur s’ennuie.", values: [0,0,1,1]}
+      - {id: "QA7",  text: "Quand je lis une histoire, je trouve qu’il est difficile de me représenter les intentions des personnages.", values: [1,1,0,0]}
+      - {id: "QA8",  text: "J’aime collectionner des informations sur des catégories de choses (types de voitures, d’oiseaux, de trains, de plantes, ...).", values: [1,1,0,0]}
+      - {id: "QA9",  text: "Je trouve qu’il est facile de décoder ce que les autres pensent ou ressentent juste en regardant leur visage.", values: [0,0,1,1]}
+      - {id: "QA10", text: "Je trouve qu’il est difficile de décoder les intentions des autres.", values: [1,1,0,0]}
