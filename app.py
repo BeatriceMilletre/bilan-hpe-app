@@ -19,6 +19,16 @@ if not YAML_PATH.exists():
     st.stop()
 with YAML_PATH.open("r", encoding="utf-8") as f:
     data = yaml.safe_load(f)
+# Pré-contrôle du bloc RE-40
+for block in data.get("blocks", []):
+    if block.get("key") == "RE-40":
+        bads = []
+        for i, it in enumerate(block.get("items", []), 1):
+            if not isinstance(it, dict) or "id" not in it or "tag" not in it:
+                bads.append((i, it))
+        if bads:
+            st.info(f"Diagnostic RE-40: {len(bads)} entrée(s) à corriger. Exemple: {bads[0]}")
+        break
 
 with st.sidebar:
     st.header("Infos répondant")
@@ -48,13 +58,29 @@ def ask_block_4pt(block):
 def ask_block_re(block):
     st.subheader("Échelle Rationnelle / Expérientielle (1–5)")
     st.caption("Reverse appliqué si `reverse: true` dans questionnaire.yml (1↔5).")
-    scores = {}
-    for it in block["items"]:
-        val = st.slider(f"{it['id']} – {it['tag']} : {it['text']}", 1, 5, 3)
+    scores, bad = {}, []
+    for idx, it in enumerate(block.get("items", []), start=1):
+        # robustesse: chaque entrée doit être un dict avec id/tag/text
+        if not isinstance(it, dict):
+            bad.append((idx, f"type={type(it).__name__} -> {it!r}"))
+            continue
+        iid = it.get("id"); tag = it.get("tag"); text = it.get("text", "")
+        if not iid or not tag:
+            bad.append((idx, f"id={iid!r}, tag={tag!r}, text={text[:40]!r}"))
+            continue
+        # clé unique pour Streamlit
+        widget_key = f"rei-{iid}"
+        val = st.slider(f"{iid} – {tag} : {text}", 1, 5, 3, key=widget_key)
         if it.get("reverse", False):
             val = 6 - val
-        scores[it["id"]] = {"tag": it["tag"], "score": float(val)}
+        scores[str(iid)] = {"tag": str(tag).upper(), "score": float(val)}
+    if bad:
+        st.warning(
+            "⚠️ Certains items RE-40 ont été ignorés car il manque `id` ou `tag` "
+            f"({len(bad)} au total). Premier problème repéré : " + str(bad[0])
+        )
     return scores
+
 
 # -------- Passation --------
 short_totals = {}
