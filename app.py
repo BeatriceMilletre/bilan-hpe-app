@@ -63,7 +63,98 @@ def interpretation_bmri(bmri_result):
     else:
         return f"Tendance expérientielle (B={b_cnt} > A={a_cnt}) : préférence pour l’intuition et le ressenti."
 
-# ---------- UI blocs ----------
+def compte_rendu_auto(short_totals, re_cats, name=None, age=None, bmri_result=None):
+    """Narration automatique globale."""
+    spq_cat = re_cats.get("_SPQ_cat", "—")
+    eq_cat  = re_cats.get("_EQ_cat", "—")
+    qr_cat  = re_cats.get("_QR_cat", "—")
+    qa_cat  = re_cats.get("_QA_cat", "—")
+
+    hr_s, hr_c = re_cats.get("HR", (None,"—"))
+    er_s, er_c = re_cats.get("ER", (None,"—"))
+    he_s, he_c = re_cats.get("HE", (None,"—"))
+    ee_s, ee_c = re_cats.get("EE", (None,"—"))
+
+    bmri_sentence = interpretation_bmri(bmri_result) if bmri_result else "—"
+
+    lignes = []
+    lignes.append("## Compte rendu automatique")
+    sous = []
+    if name: sous.append(f"Nom : **{name}**")
+    if age:  sous.append(f"Âge : **{age}**")
+    sous.append(f"Date : **{datetime.now().strftime('%Y-%m-%d %H:%M')}**")
+    lignes.append(" — ".join(sous))
+    lignes.append("")
+
+    # 1) Vue d’ensemble
+    lignes.append("### 1) Vue d’ensemble")
+    phrases = []
+    if he_c == "élevé" and (er_c in ["élevé","moyen"]):
+        phrases.append("Profil **intuitif engagé** : recours fréquent au ressenti, avec un bon appétit pour l’analyse.")
+    if (hr_c == "faible") and (er_c in ["élevé","moyen"]):
+        phrases.append("Motivation pour raisonner présente, mais **sentiment d’habileté analytique plus bas**.")
+    if hr_c == "élevé" and he_c == "élevé":
+        phrases.append("Double appui **logique + intuition** : alternance flexible selon les contextes.")
+    if not phrases:
+        phrases.append("Répartition des préférences R/E **équilibrée** ou variable selon les situations.")
+    if bmri_sentence and bmri_sentence != "—":
+        phrases.append(f"BMRI : {bmri_sentence}")
+    lignes.append("- " + " ".join(phrases))
+
+    # 2) Indicateurs courts
+    lignes.append("")
+    lignes.append("### 2) Indicateurs spécifiques (questionnaires courts)")
+    if spq_cat == "élevé":
+        lignes.append("- **SPQ-10 élevé** : sensibilité sensorielle marquée.")
+    elif spq_cat == "moyen":
+        lignes.append("- **SPQ-10 moyen** : sensibilité présente mais gérable.")
+    else:
+        lignes.append("- **SPQ-10 faible** : peu d’interférences sensorielles rapportées.")
+    if eq_cat == "élevé":
+        lignes.append("- **EQ-10 élevé** : empathie et compréhension fines.")
+    elif eq_cat == "moyen":
+        lignes.append("- **EQ-10 moyen** : empathie adéquate, modulable.")
+    else:
+        lignes.append("- **EQ-10 faible** : repérage émotionnel plus difficile.")
+    if qr_cat == "élevé":
+        lignes.append("- **Q-R-10 élevé** : intérêt pour les théories et structures.")
+    elif qr_cat == "moyen":
+        lignes.append("- **Q-R-10 moyen** : équilibre entre vision globale et détails.")
+    else:
+        lignes.append("- **Q-R-10 faible** : préférence pour le concret.")
+    if qa_cat == "élevé":
+        lignes.append("- **QA-10 élevé** : attention sensible aux détails et à l’environnement.")
+    elif qa_cat == "moyen":
+        lignes.append("- **QA-10 moyen** : attention variable selon contexte.")
+    else:
+        lignes.append("- **QA-10 faible** : peu de difficultés attentionnelles rapportées.")
+
+    # 3) Forces & vigilances R/E
+    lignes.append("")
+    lignes.append("### 3) Rationnel / Expérientiel")
+    for lab, (s, c) in {"HR":(hr_s,hr_c),"ER":(er_s,er_c),"HE":(he_s,he_c),"EE":(ee_s,ee_c)}.items():
+        if s is None: continue
+        if c == "élevé":
+            lignes.append(f"- **{lab} élevé ({s:.2f})** : ressource forte.")
+        elif c == "moyen":
+            lignes.append(f"- **{lab} moyen ({s:.2f})** : style adaptable.")
+        else:
+            lignes.append(f"- **{lab} faible ({s:.2f})** : à soutenir selon contexte.")
+
+    # 4) BMRI
+    if bmri_sentence and bmri_sentence != "—":
+        lignes.append("")
+        lignes.append("### 4) BMRI (28 items)")
+        lignes.append(f"- {bmri_sentence}")
+
+    # 5) Limites
+    lignes.append("")
+    lignes.append("### 5) Limites")
+    lignes.append("- Résultats auto-rapportés, à croiser avec observations réelles.")
+    lignes.append("- Seuils et clés BMRI ajustables dans le YAML.")
+    return "\n".join(lignes)
+
+# ---------- Blocs ----------
 def ask_block_likert(block: dict):
     labels = block.get("scale_labels", DEFAULT_LIKERT4)
     out = {}
@@ -112,8 +203,11 @@ def build_report(short_totals, re_scores, HR, ER, HE, EE, name, age, bmri_result
         "ER": (ER, categorize(ER, thresholds.get("re_scales", {}).get("ER", {}))),
         "HE": (HE, categorize(HE, thresholds.get("re_scales", {}).get("HE", {}))),
         "EE": (EE, categorize(EE, thresholds.get("re_scales", {}).get("EE", {}))),
+        "_SPQ_cat": short_cats.get("SPQ-10", "—"),
+        "_EQ_cat": short_cats.get("EQ-10", "—"),
+        "_QR_cat": short_cats.get("Q-R-10", "—"),
+        "_QA_cat": short_cats.get("QA-10", "—"),
     }
-
     L = []
     L.append("# Bilan HPE – Rapport (YAML)")
     L.append(f"**Date** : {datetime.now().strftime('%Y-%m-%d %H:%M')}")
@@ -137,6 +231,8 @@ def build_report(short_totals, re_scores, HR, ER, HE, EE, name, age, bmri_result
         L.append("")
         L.append("## BMRI (28 items)")
         L.append(interpretation_bmri(bmri_result))
+    L.append("")
+    L.append(compte_rendu_auto(short_totals, re_cats, name=name, age=age, bmri_result=bmri_result))
     return "\n".join(L)
 
 # ---------- Passation ----------
@@ -151,7 +247,6 @@ def mean_tag(tag: str, re_scores):
 for block in data.get("blocks", []):
     btype = block.get("type")
     if btype == "re":
-        # REI (garde ta fonction existante de sliders RE)
         st.subheader("Échelle Rationnelle / Expérientielle (1–5)")
         scores = {}
         for it in block.get("items", []):
@@ -191,6 +286,7 @@ with c2:
 if bmri_result is not None:
     st.subheader("BMRI – Résumé")
     st.write(interpretation_bmri(bmri_result))
+    st.info(f"🧭 Interprétation BMRI : {interpretation_bmri(bmri_result)}")
 
 # ---------- Exports ----------
 with st.sidebar:
