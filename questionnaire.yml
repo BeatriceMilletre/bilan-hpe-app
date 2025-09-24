@@ -66,49 +66,169 @@ blocks:
     type: "re"
     items:
       # HR
-      - {id:"R1",  tag:"HR", text:"J’ai l’esprit logique.", reverse: false}
-      - {id:"R4",  tag:"HR", text:"Ma façon de penser n’est pas très analytique.", reverse: true}
-      - {id:"R8",  tag:"HR", text:"Je ne passe pas beaucoup de temps à réfléchir aux décisions importantes.", reverse: true}
-      - {id:"R13", tag:"HR", text:"Je me fie à des principes logiques pour résoudre la plupart des problèmes.", reverse: false}
-      - {id:"R14", tag:"HR", text:"J’examine toutes les preuves avant de tirer une conclusion.", reverse: false}
-      - {id:"R17", tag:"HR", text:"Un raisonnement rigoureux est exaltant.", reverse: false}
-      - {id:"R25", tag:"HR", text:"Avant d’agir, je vérifie la logique impliquée.", reverse: false}
-      - {id:"R27", tag:"HR", text:"Je ne fais pas d’analyses approfondies pour évaluer une situation.", reverse: true}
-      - {id:"R30", tag:"HR", text:"J’aime utiliser ma logique.", reverse: false}
-      - {id:"R39", tag:"HR", text:"Je réfléchis comme dans un modèle de recherche scientifique.", reverse: true}
+      - id: R1
+        tag: HR
+        text: "J’ai l’esprit logique."
+        reverse: false
+      - id: R4
+        tag: HR
+        text: "Ma façon de penser n’est pas très analytique."
+        reverse: true
+      - id: R8
+        tag: HR
+        text: "Je ne passe pas beaucoup de temps à réfléchir aux décisions importantes."
+        reverse: true
+      - id: R13
+        tag: HR
+        text: "Je me fie à des principes logiques pour résoudre la plupart des problèmes."
+        reverse: false
+      - id: R14
+        tag: HR
+        text: "J’examine toutes les preuves avant de tirer une conclusion."
+        reverse: false
+      - id: R17
+        tag: HR
+        text: "Un raisonnement rigoureux est exaltant."
+        reverse: false
+      - id: R25
+        tag: HR
+        text: "Avant d’agir, je vérifie la logique impliquée."
+        reverse: false
+      - id: R27
+        tag: HR
+        text: "Je ne fais pas d’analyses approfondies pour évaluer une situation."
+        reverse: true
+      - id: R30
+        tag: HR
+        text: "J’aime utiliser ma logique."
+        reverse: false
+      - id: R39
+        tag: HR
+        text: "Je réfléchis comme dans un modèle de recherche scientifique."
+        reverse: true
 
       # ER
-      - {id:"R2",  tag:"ER", text:"Je préfère les problèmes complexes aux problèmes simples.", reverse: false}
-      - {id:"R6",  tag:"ER", text:"J’aime l’idée de l’emporter en utilisant mes compétences intellectuelles.", reverse: false}
-      - {id:"R10", tag:"ER", text:"J’aime découvrir de nouvelles façons de penser.", reverse: false}
-      - {id:"R20", tag:"ER", text:"Je m’intéresse à savoir comment les choses fonctionnent.", reverse: false}
-      - {id:"R26", tag:"ER", text:"Je préfère réfléchir à un problème plutôt qu’agir à l’instinct.", reverse: false}
-      - {id:"R28", tag:"ER", text:"J’aime résoudre des problèmes qui me demandent de réfléchir.", reverse: false}
-      - {id:"R32", tag:"ER", text:"Je n’aime pas résoudre des problèmes qui me demandent trop de réflexion.", reverse: true}
-      - {id:"R33", tag:"ER", text:"J’aime les puzzles qui demandent peu d’efforts.", reverse: true}
-      - {id:"R40", tag:"ER", text:"Je n’aime pas réfléchir longtemps aux problèmes.", reverse: true}
-      - {id:"R16", tag:"ER", text:"Je n’aime pas les problèmes trop difficiles pour que je puisse les résoudre.", reverse: true}
+      - id: R2
+        tag: ER
+        text: "Je préfère les problèmes complexes aux problèmes simples."
+        reverse: false
+      - id: R6
+        tag: ER
+        text: "J’aime l’idée de l’emporter en utilisant mes compétences intellectuelles."
+        reverse: false
+      - id: R10
+        tag: ER
+        text: "J’aime découvrir de nouvelles façons de penser."
+        reverse: false
+      - id: R20
+        tag: ER
+        text: "Je m’intéresse à savoir comment les choses fonctionnent."
+        reverse: false
+      - id: R26
+        tag: ER
+        text: "Je préfère réfléchir à un problème plutôt qu’agir à l’instinct."
+        reverse: false
+      - id: R28
+        tag: ER
+        text: "J’aime résoudre des problèmes qui me demandent de réfléchir."
+        reverse: false
+      - id: R32
+        tag: ER
+        text: "Je n’aime pas résoudre des problèmes qui me demandent trop de réflexion."
+        reverse: true
+      - id: R33
+        tag: ER
+        text: "J’aime les puzzles qui demandent peu d’efforts."
+        reverse: true
+      - id: R40
+        tag: ER
+        text: "Je n’aime pas réfléchir longtemps aux problèmes."
+        reverse: true
+      - id: R16
+        tag: ER
+        text: "Je n’aime pas les problèmes trop difficiles pour que je puisse les résoudre."
+        reverse: true
 
       # HE
-      - {id:"R3",  tag:"HE", text:"J’ai raison de faire confiance à mes intuitions.", reverse: false}
-      - {id:"R5",  tag:"HE", text:"Avec les gens, je fais confiance à ma première impression.", reverse: false}
-      - {id:"R18", tag:"HE", text:"Mes ressentis passés me guident dans des situations similaires.", reverse: false}
-      - {id:"R19", tag:"HE", text:"Je peux compter sur mes premières impressions pour juger correctement.", reverse: false}
-      - {id:"R21", tag:"HE", text:"Mes sentiments non réfléchis me déçoivent rarement.", reverse: false}
-      - {id:"R34", tag:"HE", text:"Quand je prends des décisions, j’écoute mon instinct.", reverse: false}
-      - {id:"R35", tag:"HE", text:"Je ne me fie pas à mon intuition.", reverse: true}
-      - {id:"R36", tag:"HE", text:"Je n’aime pas prendre les décisions rapidement.", reverse: true}
-      - {id:"R37", tag:"HE", text:"Je ne fais pas confiance à mes premières impressions.", reverse: true}
-      - {id:"R38", tag:"HE", text:"Je préfère les décisions réfléchies aux impulsives.", reverse: true}
+      - id: R3
+        tag: HE
+        text: "J’ai raison de faire confiance à mes intuitions."
+        reverse: false
+      - id: R5
+        tag: HE
+        text: "Avec les gens, je fais confiance à ma première impression."
+        reverse: false
+      - id: R18
+        tag: HE
+        text: "Mes ressentis passés me guident dans des situations similaires."
+        reverse: false
+      - id: R19
+        tag: HE
+        text: "Je peux compter sur mes premières impressions pour juger correctement."
+        reverse: false
+      - id: R21
+        tag: HE
+        text: "Mes sentiments non réfléchis me déçoivent rarement."
+        reverse: false
+      - id: R34
+        tag: HE
+        text: "Quand je prends des décisions, j’écoute mon instinct."
+        reverse: false
+      - id: R35
+        tag: HE
+        text: "Je ne me fie pas à mon intuition."
+        reverse: true
+      - id: R36
+        tag: HE
+        text: "Je n’aime pas prendre les décisions rapidement."
+        reverse: true
+      - id: R37
+        tag: HE
+        text: "Je ne fais pas confiance à mes premières impressions."
+        reverse: true
+      - id: R38
+        tag: HE
+        text: "Je préfère les décisions réfléchies aux impulsives."
+        reverse: true
 
       # EE
-      - {id:"R7",  tag:"EE", text:"Je fais confiance à mes réactions spontanées.", reverse: false}
-      - {id:"R9",  tag:"EE", text:"Je suis une personne très impulsive.", reverse: false}
-      - {id:"R11", tag:"EE", text:"Je fais confiance à mes réactions initiales.", reverse: false}
-      - {id:"R12", tag:"EE", text:"Je suis guidé par mes impressions.", reverse: true}
-      - {id:"R15", tag:"EE", text:"Je n’aime pas décider à partir de mes impressions.", reverse: true}
-      - {id:"R22", tag:"EE", text:"J’évite les décisions spontanées.", reverse: true}
-      - {id:"R23", tag:"EE", text:"Pour des problèmes complexes, je compte sur mon intuition.", reverse: false}
-      - {id:"R24", tag:"EE", text:"Ce que me dit mon instinct peut être utile dans certaines décisions.", reverse: false}
-      - {id:"R29", tag:"EE", text:"Je prends mes décisions sans beaucoup réfléchir.", reverse: true}
-      - {id:"R31", tag:"EE", text:"Je fais souvent confiance à mon intuition.", reverse: false}
+      - id: R7
+        tag: EE
+        text: "Je fais confiance à mes réactions spontanées."
+        reverse: false
+      - id: R9
+        tag: EE
+        text: "Je suis une personne très impulsive."
+        reverse: false
+      - id: R11
+        tag: EE
+        text: "Je fais confiance à mes réactions initiales."
+        reverse: false
+      - id: R12
+        tag: EE
+        text: "Je suis guidé par mes impressions."
+        reverse: true
+      - id: R15
+        tag: EE
+        text: "Je n’aime pas décider à partir de mes impressions."
+        reverse: true
+      - id: R22
+        tag: EE
+        text: "J’évite les décisions spontanées."
+        reverse: true
+      - id: R23
+        tag: EE
+        text: "Pour des problèmes complexes, je compte sur mon intuition."
+        reverse: false
+      - id: R24
+        tag: EE
+        text: "Ce que me dit mon instinct peut être utile dans certaines décisions."
+        reverse: false
+      - id: R29
+        tag: EE
+        text: "Je prends mes décisions sans beaucoup réfléchir."
+        reverse: true
+      - id: R31
+        tag: EE
+        text: "Je fais souvent confiance à mon intuition."
+        reverse: false
