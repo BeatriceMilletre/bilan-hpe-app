@@ -19,7 +19,7 @@ with YAML_PATH.open("r", encoding="utf-8") as f:
 
 thresholds = data.get("thresholds", {})
 
-# ---------- Outils ----------
+# ---------- Fonctions utilitaires ----------
 DEFAULT_LIKERT4 = ["Tout à fait d’accord","Plutôt d’accord","Plutôt pas d’accord","Pas du tout d’accord"]
 
 def categorize(value, thres: dict):
@@ -51,136 +51,67 @@ def synthese_re(hr, er, he, ee, thres_re: dict):
                 parts.append(f"{lab} **faible** → intuition moins mobilisée.")
     return "\n".join(f"- {p}" for p in parts)
 
-def compte_rendu_auto(short_totals, re_cats, name=None, age=None):
-    """
-    Génère un récit en français à partir :
-    - short_totals: dict { 'SPQ-10': int, 'EQ-10': int, 'Q-R-10': int, 'QA-10': int }
-    - re_cats: dict {'HR': ('score','cat'), ...}
-    """
-    # Catégories courtes
-    spq_cat = re_cats.get("_SPQ_cat", "—")
-    eq_cat  = re_cats.get("_EQ_cat", "—")
-    qr_cat  = re_cats.get("_QR_cat", "—")
-    qa_cat  = re_cats.get("_QA_cat", "—")
-
-    hr_s, hr_c = re_cats.get("HR", (None,"—"))
-    er_s, er_c = re_cats.get("ER", (None,"—"))
-    he_s, he_c = re_cats.get("HE", (None,"—"))
-    ee_s, ee_c = re_cats.get("EE", (None,"—"))
-
-    lignes = []
-    # En-tête
-    entete = "## Compte rendu automatique"
-    lignes.append(entete)
-    sous = []
-    if name: sous.append(f"Nom : **{name}**")
-    if age:  sous.append(f"Âge : **{age}**")
-    sous.append(f"Date : **{datetime.now().strftime('%Y-%m-%d %H:%M')}**")
-    lignes.append(" — ".join(sous))
-    lignes.append("")
-
-    # 1) Vue d’ensemble
-    lignes.append("### 1) Vue d’ensemble")
-    phrases = []
-    # Profil R/E global
-    if he_c == "élevé" and (er_c in ["élevé","moyen"]):
-        phrases.append("Profil **intuitif engagé** : recours fréquent au ressenti, avec un bon appétit pour l’analyse.")
-    if (hr_c == "faible") and (er_c in ["élevé","moyen"]):
-        phrases.append("Motivation pour raisonner présente, mais **sentiment d’habileté analytique plus bas**.")
-    if hr_c == "élevé" and he_c == "élevé":
-        phrases.append("Double appui **logique + intuition** : alternance flexible selon les contextes.")
-    if not phrases:
-        phrases.append("Répartition des préférences R/E **équilibrée** ou variable selon les situations.")
-    lignes.append("- " + " ".join(phrases))
-
-    # 2) Détails par domaines (courts)
-    lignes.append("")
-    lignes.append("### 2) Indicateurs spécifiques (questionnaires courts)")
-    # SPQ
-    if spq_cat == "élevé":
-        lignes.append("- **SPQ-10 élevé** : sensibilité sensorielle marquée ; soigner l’hygiène des environnements (lumières, bruit, odeurs).")
-    elif spq_cat == "moyen":
-        lignes.append("- **SPQ-10 moyen** : sensibilité présente mais gérable selon les contextes.")
-    elif spq_cat == "faible":
-        lignes.append("- **SPQ-10 faible** : peu d’interférences sensorielles rapportées.")
-    # EQ
-    if eq_cat == "élevé":
-        lignes.append("- **EQ-10 élevé** : compréhension fine d’autrui ; atout pour la communication et l’accompagnement.")
-    elif eq_cat == "moyen":
-        lignes.append("- **EQ-10 moyen** : empathie adéquate ; adapter au contexte social.")
+def interpretation_bmri(bmri_result):
+    if bmri_result is None or not bmri_result.get("choices"):
+        return "—"
+    a_cnt = sum(1 for v in bmri_result["choices"].values() if v == "A")
+    b_cnt = len(bmri_result["choices"]) - a_cnt
+    if abs(a_cnt - b_cnt) <= 2:
+        return f"Profil équilibré (A={a_cnt}, B={b_cnt}) : alternance entre raisonnement et intuition."
+    elif a_cnt > b_cnt:
+        return f"Tendance rationnelle (A={a_cnt} > B={b_cnt}) : préférence pour l’analyse structurée."
     else:
-        lignes.append("- **EQ-10 faible** : repérage émotionnel plus difficile ; expliciter les signaux sociaux peut aider.")
-    # Q-R
-    if qr_cat == "élevé":
-        lignes.append("- **Q-R-10 élevé** : intérêt fort pour les structures, théories et explications détaillées.")
-    elif qr_cat == "moyen":
-        lignes.append("- **Q-R-10 moyen** : alternance entre vision d’ensemble et détails selon l’intérêt.")
-    else:
-        lignes.append("- **Q-R-10 faible** : préférence pour le concret et le pratico-pratique.")
-    # QA
-    if qa_cat == "élevé":
-        lignes.append("- **QA-10 élevé** : accords fréquents avec les items ciblés ; surveiller la charge attentionnelle.")
-    elif qa_cat == "moyen":
-        lignes.append("- **QA-10 moyen** : attention globalement fonctionnelle, variable selon l’environnement.")
-    else:
-        lignes.append("- **QA-10 faible** : peu de difficultés auto-rapportées sur ces items spécifiques.")
+        return f"Tendance expérientielle (B={b_cnt} > A={a_cnt}) : préférence pour l’intuition et le ressenti."
 
-    # 3) Forces & points de vigilance (R/E)
-    lignes.append("")
-    lignes.append("### 3) Rationnel / Expérientiel – forces & points de vigilance")
-    def phrase_cat(lab, s, c):
-        if s is None: return None
-        if c == "élevé":
-            if lab in ["HR","ER"]:
-                return f"- **{lab} élevé ({s:.2f})** : structuration, analyse, appétence pour le raisonnement."
-            else:
-                return f"- **{lab} élevé ({s:.2f})** : intuition vive, premières impressions utiles."
-        if c == "moyen":
-            return f"- **{lab} moyen ({s:.2f})** : équilibre, style adaptable."
-        return f"- **{lab} faible ({s:.2f})** : à soutenir/structurer selon les tâches."
-    for lab, (s,c) in {"HR":(hr_s,hr_c),"ER":(er_s,er_c),"HE":(he_s,he_c),"EE":(ee_s,ee_c)}.items():
-        p = phrase_cat(lab, s, c)
-        if p: lignes.append(p)
+# ---------- UI blocs ----------
+def ask_block_likert(block: dict):
+    labels = block.get("scale_labels", DEFAULT_LIKERT4)
+    out = {}
+    st.subheader(block.get("key", "Échelle"))
+    for it in block.get("items", []):
+        vals = it["values"]
+        n = len(vals)
+        local_labels = (labels + [f"Option {i+1}" for i in range(len(labels), n)])[:n]
+        c1, c2 = st.columns([3, 2])
+        with c1:
+            st.write(f"**{it['id']}** — {it.get('text','')}")
+        with c2:
+            choice = st.radio(
+                it["id"], options=list(range(n)), index=0, horizontal=True,
+                label_visibility="collapsed", format_func=lambda i: local_labels[i]
+            )
+        out[it["id"]] = vals[choice]
+        st.divider()
+    return out
 
-    # 4) Recommandations opérationnelles
-    lignes.append("")
-    lignes.append("### 4) Pistes concrètes")
-    recos = []
-    if he_c == "élevé":
-        recos.append("- Utiliser l’intuition comme **hypothèse initiale** puis la valider avec 2–3 critères objectifs.")
-    if hr_c in ["faible","moyen"]:
-        recos.append("- Systématiser des **mini-cadres** (5-Pourquoi, tableau Avantages/Risques, checklist de décision).")
-    if spq_cat == "élevé":
-        recos.append("- **Hygiène sensorielle** : réduire bruit/néons/odeurs lors de tâches d’analyse.")
-    if er_c == "élevé":
-        recos.append("- Canaliser l’appétence pour les problèmes complexes en **blocs de travail** structurés (objectif, durée, livrable).")
-    if not recos:
-        recos.append("- Ajuster l’effort entre analyse et intuition selon l’enjeu et le temps disponible.")
-    lignes.extend(recos)
+def ask_block_forced_choice(block: dict):
+    st.subheader(block.get("key", "Forced-choice (A/B)"))
+    choices = {}
+    for idx, it in enumerate(block.get("items", []), 1):
+        stem = it.get("stem", "")
+        a = it.get("a", "")
+        b = it.get("b", "")
+        st.markdown(f"**{it.get('id', f'FC{idx}')}** — {stem}")
+        pick = st.radio(
+            it.get("id", f"FC{idx}"),
+            options=["A","B"],
+            index=0,
+            horizontal=True,
+            format_func=lambda x: f"{x}) {a if x=='A' else b}"
+        )
+        choices[it.get("id", f"FC{idx}")] = pick
+        st.divider()
+    return {"choices": choices}
 
-    # 5) À discuter / limites
-    lignes.append("")
-    lignes.append("### 5) À discuter")
-    lignes.append("- Les résultats sont **auto-rapportés** ; à croiser avec des observations et objectifs réels.")
-    lignes.append("- Les catégories (faible/moyen/élevé) dépendent des **seuils configurés** ; ajustables.")
-
-    return "\n".join(lignes)
-
-def build_report(short_totals, re_scores, HR, ER, HE, EE, name, age):
-    # Catégorisation
-    short_cats = {
-        k: categorize(v, thresholds.get("short_scales", {}).get(k, {}))
-        for k, v in short_totals.items()
-    }
+# ---------- Rapport ----------
+def build_report(short_totals, re_scores, HR, ER, HE, EE, name, age, bmri_result=None):
+    short_cats = {k: categorize(v, thresholds.get("short_scales", {}).get(k, {}))
+                  for k, v in short_totals.items()}
     re_cats = {
         "HR": (HR, categorize(HR, thresholds.get("re_scales", {}).get("HR", {}))),
         "ER": (ER, categorize(ER, thresholds.get("re_scales", {}).get("ER", {}))),
         "HE": (HE, categorize(HE, thresholds.get("re_scales", {}).get("HE", {}))),
         "EE": (EE, categorize(EE, thresholds.get("re_scales", {}).get("EE", {}))),
-        "_SPQ_cat": short_cats.get("SPQ-10", "—"),
-        "_EQ_cat":  short_cats.get("EQ-10", "—"),
-        "_QR_cat":  short_cats.get("Q-R-10", "—"),
-        "_QA_cat":  short_cats.get("QA-10", "—"),
     }
 
     L = []
@@ -202,43 +133,25 @@ def build_report(short_totals, re_scores, HR, ER, HE, EE, name, age):
     L.append("")
     L.append("## Synthèse R/E")
     L.append(synthese_re(HR, ER, HE, EE, thresholds.get("re_scales", {})))
-    L.append("")
-    # Nouveau : Compte rendu automatique
-    L.append(compte_rendu_auto(short_totals, re_cats, name=name, age=age))
-    L.append("")
-    L.append("> Note : seuils configurables dans `questionnaire.yml` → `thresholds`.")
+    if bmri_result is not None:
+        L.append("")
+        L.append("## BMRI (28 items)")
+        L.append(interpretation_bmri(bmri_result))
     return "\n".join(L)
 
-# ---------- Mode sélection ----------
-mode = st.radio("Choisir le mode :", ["Passer le test", "Téléverser un fichier existant"])
+# ---------- Passation ----------
+short_totals = {}
+re_scores = {}
+bmri_result = None
 
-if mode == "Passer le test":
-    st.title("🧠 Passation du Bilan HPE")
+def mean_tag(tag: str, re_scores):
+    vals = [v["score"] for v in re_scores.values() if v["tag"] == tag]
+    return round(float(np.mean(vals)), 2) if vals else None
 
-    with st.sidebar:
-        st.header("Infos répondant")
-        name = st.text_input("Nom (optionnel)")
-        age = st.text_input("Âge (optionnel)")
-
-    # ---- Passation des blocs ----
-    def ask_block_4pt(block: dict):
-        labels = block.get("scale_labels", DEFAULT_LIKERT4)
-        out = {}
-        st.subheader(block.get("key", "Échelle"))
-        for it in block.get("items", []):
-            c1, c2 = st.columns([3, 2])
-            with c1:
-                st.write(f"**{it['id']}** — {it.get('text','')}")
-            with c2:
-                choice = st.radio(
-                    it["id"], options=list(range(4)), index=0, horizontal=True,
-                    label_visibility="collapsed", format_func=lambda i: labels[i]
-                )
-            out[it["id"]] = it["values"][choice]
-            st.divider()
-        return out
-
-    def ask_block_re(block: dict):
+for block in data.get("blocks", []):
+    btype = block.get("type")
+    if btype == "re":
+        # REI (garde ta fonction existante de sliders RE)
         st.subheader("Échelle Rationnelle / Expérientielle (1–5)")
         scores = {}
         for it in block.get("items", []):
@@ -247,85 +160,57 @@ if mode == "Passer le test":
             if it.get("reverse", False):
                 val = 6 - val
             scores[str(iid)] = {"tag": str(tag).upper(), "score": float(val)}
-        return scores
+        re_scores = scores
+    elif btype == "forced_choice":
+        bmri_result = ask_block_forced_choice(block)
+    else:
+        answers = ask_block_likert(block)
+        short_totals[block["key"]] = sum(answers.values())
 
-    short_totals = {}
-    re_scores = {}
-    for block in data.get("blocks", []):
-        if block.get("type") == "re":
-            re_scores = ask_block_re(block)
-        else:
-            answers = ask_block_4pt(block)
-            short_totals[block["key"]] = sum(answers.values())
+HR = mean_tag("HR", re_scores); ER = mean_tag("ER", re_scores)
+HE = mean_tag("HE", re_scores); EE = mean_tag("EE", re_scores)
 
-    def mean_tag(tag: str):
-        vals = [v["score"] for v in re_scores.values() if v["tag"] == tag]
-        return round(float(np.mean(vals)), 2) if vals else None
-
-    HR = mean_tag("HR"); ER = mean_tag("ER"); HE = mean_tag("HE"); EE = mean_tag("EE")
-
-    # ---- Résultats ----
-    st.header("Résultats")
-    c1, c2 = st.columns(2)
-    with c1:
-        st.subheader("Questionnaires courts")
-        rows = []
-        for k, v in short_totals.items():
-            cat = categorize(v, thresholds.get("short_scales", {}).get(k, {}))
-            rows.append({"Échelle": k, "Total": v, "Catégorie": cat})
-        st.dataframe(pd.DataFrame(rows), use_container_width=True)
-
-    with c2:
-        st.subheader("Rationnel / Expérientiel (1–5)")
-        rows = []
-        for lab, val in [("HR", HR), ("ER", ER), ("HE", HE), ("EE", EE)]:
-            cat = categorize(val, thresholds.get("re_scales", {}).get(lab, {}))
-            rows.append({"Sous-échelle": lab, "Score": val, "Catégorie": cat})
-        st.dataframe(pd.DataFrame(rows), use_container_width=True)
-
-    # ---- Compte rendu automatique (aperçu) ----
-    # Catégories pour l'algorithme narratif
-    re_cats = {
-        "HR": (HR, categorize(HR, thresholds.get("re_scales", {}).get("HR", {}))),
-        "ER": (ER, categorize(ER, thresholds.get("re_scales", {}).get("ER", {}))),
-        "HE": (HE, categorize(HE, thresholds.get("re_scales", {}).get("HE", {}))),
-        "EE": (EE, categorize(EE, thresholds.get("re_scales", {}).get("EE", {}))),
-        "_SPQ_cat": categorize(short_totals.get("SPQ-10", 0), thresholds.get("short_scales", {}).get("SPQ-10", {})),
-        "_EQ_cat":  categorize(short_totals.get("EQ-10", 0),  thresholds.get("short_scales", {}).get("EQ-10",  {})),
-        "_QR_cat":  categorize(short_totals.get("Q-R-10", 0), thresholds.get("short_scales", {}).get("Q-R-10", {})),
-        "_QA_cat":  categorize(short_totals.get("QA-10", 0),  thresholds.get("short_scales", {}).get("QA-10",  {})),
-    }
-    cr_auto = compte_rendu_auto(short_totals, re_cats, name=name, age=age)
-
-    st.subheader("📝 Compte rendu automatique – aperçu")
-    st.markdown(cr_auto)
-
-    # ---- Exports ----
-    report = build_report(short_totals, re_scores, HR, ER, HE, EE, name, age)
-    st.download_button("💾 Télécharger le rapport (.md)", report,
-                       file_name="bilan_hpe_rapport.md", mime="text/markdown")
-
-    raw = {}
+# ---------- Résultats ----------
+st.header("Résultats")
+c1, c2 = st.columns(2)
+with c1:
+    st.subheader("Questionnaires courts")
+    rows = []
     for k, v in short_totals.items():
-        raw[k] = v
-    for k, v in re_scores.items():
-        raw[k] = v["score"]
-    raw.update({"HR": HR, "ER": ER, "HE": HE, "EE": EE})
-    st.download_button("⬇️ Exporter les réponses (.csv)",
-                       pd.DataFrame([raw]).to_csv(index=False).encode("utf-8"),
-                       file_name="bilan_hpe_reponses.csv", mime="text/csv")
+        cat = categorize(v, thresholds.get("short_scales", {}).get(k, {}))
+        rows.append({"Échelle": k, "Total": v, "Catégorie": cat})
+    st.dataframe(pd.DataFrame(rows), use_container_width=True)
+with c2:
+    st.subheader("Rationnel / Expérientiel (1–5)")
+    rows = []
+    for lab, val in [("HR",HR),("ER",ER),("HE",HE),("EE",EE)]:
+        cat = categorize(val, thresholds.get("re_scales", {}).get(lab, {}))
+        rows.append({"Sous-échelle": lab, "Score": val, "Catégorie": cat})
+    st.dataframe(pd.DataFrame(rows), use_container_width=True)
 
-elif mode == "Téléverser un fichier existant":
-    st.title("📂 Importer un rapport ou des réponses")
-    uploaded = st.file_uploader("Déposez un fichier .csv (réponses brutes) ou .md (rapport)")
-    if uploaded:
-        if uploaded.name.endswith(".csv"):
-            df = pd.read_csv(uploaded)
-            st.subheader("Réponses importées")
-            st.dataframe(df, use_container_width=True)
-        elif uploaded.name.endswith(".md"):
-            content = uploaded.read().decode("utf-8")
-            st.subheader("Rapport importé")
-            st.markdown(content)
-        else:
-            st.error("Format non reconnu. Utilisez .csv ou .md")
+if bmri_result is not None:
+    st.subheader("BMRI – Résumé")
+    st.write(interpretation_bmri(bmri_result))
+
+# ---------- Exports ----------
+with st.sidebar:
+    st.header("Infos répondant")
+    name = st.text_input("Nom (optionnel)")
+    age = st.text_input("Âge (optionnel)")
+
+report = build_report(short_totals, re_scores, HR, ER, HE, EE, name, age, bmri_result=bmri_result)
+st.download_button("💾 Télécharger le rapport (.md)", report,
+                   file_name="bilan_hpe_rapport.md", mime="text/markdown")
+
+raw = {}
+for k, v in short_totals.items():
+    raw[k] = v
+for k, v in re_scores.items():
+    raw[k] = v["score"]
+raw.update({"HR": HR, "ER": ER, "HE": HE, "EE": EE})
+if bmri_result is not None:
+    for k, v in bmri_result["choices"].items():
+        raw[k] = v
+st.download_button("⬇️ Exporter les réponses (.csv)",
+                   pd.DataFrame([raw]).to_csv(index=False).encode("utf-8"),
+                   file_name="bilan_hpe_reponses.csv", mime="text/csv")
