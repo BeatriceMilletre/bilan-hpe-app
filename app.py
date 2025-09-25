@@ -194,7 +194,7 @@ with tab_test:
     HR = mean_tag("HR", re_scores); ER = mean_tag("ER", re_scores)
     HE = mean_tag("HE", re_scores); EE = mean_tag("EE", re_scores)
 
-    st.header("Résultats")
+    st.header("Aperçu des résultats")
     c1, c2 = st.columns(2)
     with c1:
         st.subheader("Questionnaires courts")
@@ -215,10 +215,8 @@ with tab_test:
         name = st.text_input("Nom (optionnel)")
         age = st.text_input("Âge (optionnel)")
 
-    # Exports (rapport + CSV)
+    # Prépare les fichiers (mais NE LES PROPOSE PAS au téléchargement ici)
     report = build_report(short_totals, re_scores, HR, ER, HE, EE, name=name, age=age, bmri_result=bmri_result)
-    st.download_button("💾 Télécharger le rapport (.md)", report, file_name="bilan_hpe_rapport.md", mime="text/markdown")
-
     raw = {}
     for k, v in short_totals.items(): raw[k] = v
     for k, v in re_scores.items():    raw[k] = v["score"]
@@ -226,14 +224,12 @@ with tab_test:
     if bmri_result:
         for k, v in bmri_result["choices"].items(): raw[k] = v
     csv_bytes = pd.DataFrame([raw]).to_csv(index=False).encode("utf-8")
-    st.download_button("⬇️ Télécharger les réponses (.csv)", csv_bytes, file_name="bilan_hpe_reponses.csv", mime="text/csv")
 
     # ---------- Envoi final (automatique vers PRACTITIONER_EMAIL) ----------
     st.markdown("---")
     st.subheader("🧾 Validation & envoi au praticien")
 
     target_email = st.secrets.get("PRACTITIONER_EMAIL")
-
     if not target_email:
         st.warning(
             "Adresse praticien non configurée : ajoute `PRACTITIONER_EMAIL` dans les Secrets.\n"
@@ -243,7 +239,6 @@ with tab_test:
     if st.button("Envoyer"):
         code = make_recovery_code()
         save_results(code, report, csv_bytes)
-
         sent = False
         if target_email:
             sent = send_code_to_practitioner(code, target_email)
