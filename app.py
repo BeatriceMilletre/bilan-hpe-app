@@ -382,7 +382,7 @@ if mode == "Passer le test":
             if ok:
                 st.success(f"E-mail envoyé à {to_addr}.")
                 st.session_state["last_report_md"] = report
-                st.session_state["last_raw_csv"]   = csv_bytes)
+                st.session_state["last_raw_csv"]   = csv_bytes
 
 elif mode == "Téléverser un fichier existant":
     st.title("📂 Importer un rapport ou des réponses")
