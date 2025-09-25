@@ -20,7 +20,6 @@ YAML_PATH = Path("questionnaire.yml")
 RESULTS_DIR = Path("results")
 RESULTS_DIR.mkdir(exist_ok=True)
 
-PRACTITIONER_EMAIL_DEFAULT = st.secrets.get("PRACTITIONER_EMAIL", "Beatricemilletre@gmail.com")
 DEFAULT_LIKERT4 = ["Tout à fait d’accord","Plutôt d’accord","Plutôt pas d’accord","Pas du tout d’accord"]
 
 # ------------------------------------------------------------
@@ -216,7 +215,7 @@ with tab_test:
         name = st.text_input("Nom (optionnel)")
         age = st.text_input("Âge (optionnel)")
 
-    # Exports (non obligatoires pour l'envoi, mais utiles)
+    # Exports (rapport + CSV)
     report = build_report(short_totals, re_scores, HR, ER, HE, EE, name=name, age=age, bmri_result=bmri_result)
     st.download_button("💾 Télécharger le rapport (.md)", report, file_name="bilan_hpe_rapport.md", mime="text/markdown")
 
@@ -229,22 +228,29 @@ with tab_test:
     csv_bytes = pd.DataFrame([raw]).to_csv(index=False).encode("utf-8")
     st.download_button("⬇️ Télécharger les réponses (.csv)", csv_bytes, file_name="bilan_hpe_reponses.csv", mime="text/csv")
 
+    # ---------- Envoi final (automatique vers PRACTITIONER_EMAIL) ----------
     st.markdown("---")
     st.subheader("🧾 Validation & envoi au praticien")
 
-    praticien_email = st.text_input(
-        "Email du praticien", value=PRACTITIONER_EMAIL_DEFAULT,
-        help="Adresse qui recevra le code de récupération."
-    )
+    target_email = st.secrets.get("PRACTITIONER_EMAIL")
+
+    if not target_email:
+        st.warning(
+            "Adresse praticien non configurée : ajoute `PRACTITIONER_EMAIL` dans les Secrets.\n"
+            "L’email ne sera pas envoyé mais le code sera affiché et les fichiers seront sauvegardés."
+        )
 
     if st.button("Envoyer"):
         code = make_recovery_code()
         save_results(code, report, csv_bytes)
-        sent = send_code_to_practitioner(code, praticien_email)
+
+        sent = False
+        if target_email:
+            sent = send_code_to_practitioner(code, target_email)
 
         st.session_state["last_recovery_code"] = code
         if sent:
-            st.info("📧 Un email a été envoyé au praticien avec le code de récupération.")
+            st.info("📧 Un email a été envoyé automatiquement au praticien avec le code de récupération.")
         st.success(f"Résultats enregistrés avec le code **{code}** (à communiquer au praticien).")
 
 # --------- 🔑 Accès praticien ----------
