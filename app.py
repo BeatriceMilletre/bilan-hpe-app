@@ -5,6 +5,8 @@ import numpy as np
 import yaml
 import matplotlib.pyplot as plt
 import io
+import smtplib
+from email.message import EmailMessage
 from datetime import datetime
 from pathlib import Path
 
@@ -131,6 +133,75 @@ def download_fig_button(fig, filename):
     fig.savefig(buf, format="png", dpi=180, bbox_inches="tight")
     st.download_button("⬇️ Télécharger le graphique", data=buf.getvalue(),
                        file_name=filename, mime="image/png")
+
+# ---------- E-mail ----------
+def send_email_smtp(to_addr: str, subject: str, body_text: str, attachments: list):
+    """
+    Envoie un e-mail via SMTP Gmail avec pièces jointes.
+    attachments: [(filename:str, content_bytes:bytes, mime:str)]
+    Secrets requis : EMAIL_SENDER, EMAIL_APP_PASSWORD
+    """
+    sender = st.secrets.get("EMAIL_SENDER")
+    app_pwd = st.secrets.get("EMAIL_APP_PASSWORD")
+    if not sender or not app_pwd:
+        st.error("Secrets manquants : définis EMAIL_SENDER et EMAIL_APP_PASSWORD dans .streamlit/secrets.toml")
+        return False
+
+    msg = EmailMessage()
+    msg["From"] = sender
+    msg["To"] = to_addr
+    msg["Subject"] = subject
+    msg.set_content(body_text)
+
+    for fname, content, mime in attachments:
+        maintype, subtype = (mime.split("/", 1) if "/" in mime else ("application","octet-stream"))
+        msg.add_attachment(content, maintype=maintype, subtype=subtype, filename=fname)
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(sender, app_pwd)
+            smtp.send_message(msg)
+        return True
+    except Exception as e:
+        st.error(f"Échec d’envoi SMTP : {e}")
+        return False
+
+def send_email_sendgrid(to_addr: str, subject: str, body_text: str, attachments: list):
+    """ Variante via SendGrid (nécessite SENDGRID_API_KEY dans les secrets et la lib `sendgrid`). """
+    try:
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
+    except Exception:
+        st.error("SendGrid non disponible : ajoute `sendgrid` à requirements.txt.")
+        return False
+
+    sender = st.secrets.get("EMAIL_SENDER")
+    api_key = st.secrets.get("SENDGRID_API_KEY")
+    if not sender or not api_key:
+        st.error("Secrets manquants : définis SENDGRID_API_KEY et EMAIL_SENDER.")
+        return False
+
+    message = Mail(from_email=sender, to_emails=to_addr, subject=subject, plain_text_content=body_text)
+
+    import base64
+    for fname, content, mime in attachments:
+        att = Attachment()
+        att.file_content = FileContent(base64.b64encode(content).decode())
+        att.file_type = FileType(mime or "application/octet-stream")
+        att.file_name = FileName(fname)
+        att.disposition = Disposition("attachment")
+        message.add_attachment(att)
+
+    try:
+        sg = SendGridAPIClient(api_key)
+        resp = sg.send(message)
+        if 200 <= resp.status_code < 300:
+            return True
+        st.error(f"SendGrid a répondu {resp.status_code}.")
+        return False
+    except Exception as e:
+        st.error(f"Échec d’envoi SendGrid : {e}")
+        return False
 
 # ---------- Widgets de passation ----------
 def ask_block_likert(block: dict):
@@ -283,6 +354,36 @@ if mode == "Passer le test":
     st.session_state["last_report_md"] = report
     st.session_state["last_raw_csv"]   = csv_bytes
 
+    # ---- Envoi e-mail
+    st.markdown("---")
+    st.subheader("✉️ Envoi par e-mail")
+    col1, col2 = st.columns([2,1])
+    with col1:
+        to_addr = st.text_input("Destinataire", value="Beatricemilletre@gmail.com")
+        subject = st.text_input("Objet", value="Bilan HPE – Résultats de passation")
+    with col2:
+        use_sendgrid = st.toggle("Utiliser SendGrid (sinon Gmail SMTP)", value=False)
+    body = st.text_area(
+        "Message",
+        value=("Bonjour,\n\nVeuillez trouver ci-joints le rapport (.md) et le fichier de réponses (.csv)."
+               "\n\nBien cordialement,\nBilan HPE"),
+        height=140
+    )
+    attachments = [
+        ("bilan_hpe_rapport.md", report.encode("utf-8"), "text/markdown"),
+        ("bilan_hpe_reponses.csv", csv_bytes, "text/csv"),
+    ]
+    if st.button("Envoyer maintenant ✉️"):
+        if not to_addr.strip():
+            st.warning("Renseigne une adresse destinataire.")
+        else:
+            ok = (send_email_sendgrid(to_addr, subject, body, attachments) if use_sendgrid
+                  else send_email_smtp(to_addr, subject, body, attachments))
+            if ok:
+                st.success(f"E-mail envoyé à {to_addr}.")
+                st.session_state["last_report_md"] = report
+                st.session_state["last_raw_csv"]   = csv_bytes)
+
 elif mode == "Téléverser un fichier existant":
     st.title("📂 Importer un rapport ou des réponses")
     uploaded = st.file_uploader("Déposez un fichier .csv (réponses brutes) ou .md (rapport)")
@@ -291,40 +392,25 @@ elif mode == "Téléverser un fichier existant":
             df = pd.read_csv(uploaded)
             st.subheader("Prévisualisation du CSV importé")
             st.dataframe(df, use_container_width=True)
-
-            # Bouton pour re-télécharger une copie telle quelle
             st.download_button("⬇️ Télécharger une copie du CSV",
                                data=df.to_csv(index=False).encode("utf-8"),
                                file_name="bilan_hpe_reponses_copie.csv", mime="text/csv")
-
-            # Générer un rapport minimal depuis le CSV (si colonnes présentes)
             name = st.text_input("Nom (optionnel)", key="up_name")
             age  = st.text_input("Âge (optionnel)", key="up_age")
-
             short_totals = {}
             for key in ["SPQ-10","EQ-10","Q-R-10","QA-10","BMRI-20"]:
                 if key in df.columns:
                     try: short_totals[key] = float(df.iloc[0][key])
                     except: pass
-
-            # HR/ER/HE/EE si disponibles
             HR = float(df.iloc[0]["HR"]) if "HR" in df.columns else None
             ER = float(df.iloc[0]["ER"]) if "ER" in df.columns else None
             HE = float(df.iloc[0]["HE"]) if "HE" in df.columns else None
             EE = float(df.iloc[0]["EE"]) if "EE" in df.columns else None
-
-            # BMRI A/B s'il y a des colonnes BMRI*
             bmri_cols = [c for c in df.columns if c.upper().startswith("BMRI")]
-            bmri_result = None
-            if bmri_cols:
-                choices = {c: str(df.iloc[0][c]) for c in bmri_cols}
-                bmri_result = {"choices": choices}
-
-            # Rapport
+            bmri_result = {"choices": {c: str(df.iloc[0][c]) for c in bmri_cols}} if bmri_cols else None
             report = build_report(short_totals, {}, HR, ER, HE, EE, name, age, bmri_result=bmri_result)
             st.subheader("📄 Générer un rapport depuis le CSV")
             st.download_button("💾 Rapport (.md)", report, file_name="bilan_hpe_rapport.md", mime="text/markdown")
-
         elif uploaded.name.endswith(".md"):
             content = uploaded.read().decode("utf-8")
             st.subheader("Rapport importé")
@@ -338,7 +424,6 @@ elif mode == "Téléverser un fichier existant":
 
 elif mode == "Télécharger des fichiers de résultats":
     st.title("⬇️ Télécharger des fichiers de résultats")
-
     st.subheader("Derniers fichiers générés (cette session)")
     if "last_report_md" in st.session_state or "last_raw_csv" in st.session_state:
         col1, col2 = st.columns(2)
@@ -367,7 +452,6 @@ elif mode == "Télécharger des fichiers de résultats":
 
     st.markdown("---")
     st.subheader("Modèles vierges (gabarits)")
-
     template_csv = pd.DataFrame([{
         "SPQ-10": "", "EQ-10": "", "Q-R-10": "", "QA-10": "",
         "HR": "", "ER": "", "HE": "", "EE": "",
@@ -377,14 +461,11 @@ elif mode == "Télécharger des fichiers de résultats":
         "BMRI19": "", "BMRI20": "", "BMRI21": "", "BMRI22": "", "BMRI23": "", "BMRI24": "",
         "BMRI25": "", "BMRI26": "", "BMRI27": "", "BMRI28": "",
     }]).to_csv(index=False).encode("utf-8")
-
     colA, colB = st.columns(2)
     with colA:
         st.download_button(
             "📄 Télécharger le modèle de CSV (vierge)",
-            data=template_csv,
-            file_name="modele_bilan_hpe_reponses.csv",
-            mime="text/csv"
+            data=template_csv, file_name="modele_bilan_hpe_reponses.csv", mime="text/csv"
         )
     with colB:
         template_md = """# Bilan HPE – Rapport (modèle)
@@ -411,7 +492,5 @@ Nom: —  –  Âge: —
 """
         st.download_button(
             "📝 Télécharger le modèle de rapport (.md)",
-            data=template_md,
-            file_name="modele_bilan_hpe_rapport.md",
-            mime="text/markdown"
+            data=template_md, file_name="modele_bilan_hpe_rapport.md", mime="text/markdown"
         )
