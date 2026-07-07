@@ -61,6 +61,30 @@ blocks:
       - {id: "QA9",  text: "Je remarque rapidement quand quelque chose n’est pas à sa place.", values: [1,1,0,0]}
       - {id: "QA10", text: "Je peux rester concentré longtemps même dans un environnement bruyant.", values: [0,0,1,1]}
 
+  # ---------- Polychronie-Monochronie ----------
+  - key: "Polychronie-Monochronie"
+    scale_labels:
+      - "Tout à fait d’accord"
+      - "Plutôt d’accord"
+      - "Légèrement d’accord"
+      - "Ni d’accord ni pas d’accord"
+      - "Légèrement pas d’accord"
+      - "Plutôt pas d’accord"
+      - "Pas du tout d’accord"
+
+    items:
+      - {id: "PM1", text: "J'aime mener plusieurs activités en même temps.", values: [7,6,5,4,3,2,1]}
+      - {id: "PM2", text: "Je préfère terminer entièrement un projet dans une journée plutôt que de faire chaque jour une partie de plusieurs projets.", values: [1,2,3,4,5,6,7]}
+      - {id: "PM3", text: "Je pense que les gens devraient essayer de faire plusieurs choses à la fois.", values: [7,6,5,4,3,2,1]}
+      - {id: "PM4", text: "Lorsque je travaille seul(e), je travaille généralement sur un seul projet à la fois.", values: [1,2,3,4,5,6,7]}
+      - {id: "PM5", text: "Je préfère faire une seule chose à la fois.", values: [1,2,3,4,5,6,7]}
+      - {id: "PM6", text: "Je pense que les gens travaillent le mieux lorsqu'ils ont plusieurs tâches à accomplir.", values: [7,6,5,4,3,2,1]}
+      - {id: "PM7", text: "Je pense qu'il est préférable de terminer une tâche avant d'en commencer une autre.", values: [1,2,3,4,5,6,7]}
+      - {id: "PM8", text: "Je pense que les personnes fonctionnent mieux lorsqu'elles ont plusieurs tâches ou missions à réaliser.", values: [7,6,5,4,3,2,1]}
+      - {id: "PM9", text: "J'aime rarement travailler sur plus d'une seule tâche ou mission à la fois.", values: [1,2,3,4,5,6,7]}
+      - {id: "PM10", text: "Je préfère faire chaque jour une partie de plusieurs projets plutôt que de terminer entièrement un projet dans une journée.", values: [7,6,5,4,3,2,1]}
+
+
   - key: "BMRI-28"
     type: "forced_choice"
     items:
